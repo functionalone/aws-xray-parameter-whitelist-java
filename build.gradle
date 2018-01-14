@@ -11,7 +11,7 @@ repositories {
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-archivesBaseName = 'aws-xray-whitelist-instrumentor'
+archivesBaseName = 'aws-xray-parameter-whitelist-instrumentor'
 
 dependencies {
     // This dependency is exported to consumers, that is to say found on their compile classpath.
@@ -21,13 +21,17 @@ dependencies {
     implementation 'commons-logging:commons-logging:1.2'
 
     // Use JUnit test framework
-    testImplementation 'junit:junit:4.12'
+    testImplementation (
+    	'junit:junit:4.12',
+    	'com.amazonaws:aws-java-sdk-dynamodb:1.11.259',
+    )
 }
 
 test {
 	testLogging {
         events "passed", "skipped", "failed"
     }
+    systemProperty "aws-xray-whitelist.s3-bucket", System.getProperty("aws-xray-whitelist.s3-bucket")
 }
 
 version = '0.1.0'
