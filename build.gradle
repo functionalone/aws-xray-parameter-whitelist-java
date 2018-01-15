@@ -1,5 +1,17 @@
+buildscript {
+    repositories {        
+        jcenter()        
+    }
+    dependencies {        
+        classpath("com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3")                
+    }
+}
+
 apply plugin: 'java-library'
 apply plugin: 'eclipse'
+apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.bintray'
+
 
 // In this section you declare where to find the dependencies of your project
 repositories {
@@ -8,10 +20,12 @@ repositories {
     jcenter()
 }
 
+version = '0.1.1'
+
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-archivesBaseName = 'aws-xray-parameter-whitelist-instrumentor'
+
 
 dependencies {
     // This dependency is exported to consumers, that is to say found on their compile classpath.
@@ -27,6 +41,84 @@ dependencies {
     )
 }
 
+archivesBaseName = 'aws-xray-parameter-whitelist-instrumentor'
+def githubUrl = 'https://github.com/functionalone/aws-xray-parameter-whitelist-java'
+
+task sourceJar(type: Jar) {
+	classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+// Create the pom configuration:
+def pomConfig = {
+    licenses {
+        license {
+            name "MIT"
+            url "https://opensource.org/licenses/MIT"
+            distribution "repo"
+        }
+    }
+    scm {
+       url githubUrl
+    }
+}
+
+publishing {
+	publications {
+		MyPublication(MavenPublication) {
+			from components.java
+			artifact sourceJar
+            artifact javadocJar
+			groupId 'com.github.functionalone'
+           	artifactId project.archivesBaseName
+            version project.version
+			pom.withXml {
+                def root = asNode()
+                root.appendNode('description', 'Configure AWS X-Ray (Java) with an alternate parameter whitelist')
+                root.appendNode('name', project.archivesBaseName)
+                root.appendNode('url', githubUrl)
+                root.children().last() + pomConfig
+            }                        	
+		}
+	}
+}
+
+
+model {
+    tasks.generatePomFileForMyPublicationPublication {
+        destination = file("$buildDir/libs/${project.archivesBaseName}-${project.version}.pom")
+    }
+}
+
+
+bintray {
+    user = System.getProperty("bintray.user")
+    key = System.getProperty("bintray.api_key")    
+    publications = ['MyPublication']
+    publish = true //[Default: false] Whether version should be auto published after an upload
+	pkg {
+		repo = 'maven'
+		name = project.archivesBaseName
+		userOrg = 'functionalone'
+		desc = 'Configure AWS X-Ray (Java) with an alternate parameter whitelist'
+		licenses = ['MIT']
+		vcsUrl = githubUrl
+		labels = ['aws', 'xray', 'whitelist']
+		publicDownloadNumbers = false		
+		version {
+			name = project.version
+			desc = project.version
+			vcsTag = 'master'
+			//attributes = ['gradle-plugin': 'com.use.less:com.use.less.gradle:gradle-useless-plugin']
+		}
+	}
+}
+
 test {
 	testLogging {
         events "passed", "skipped", "failed"
@@ -34,7 +126,7 @@ test {
     systemProperty "aws-xray-whitelist.s3-bucket", System.getProperty("aws-xray-whitelist.s3-bucket")
 }
 
-version = '0.1.0'
+
 
 jar {
     manifest {

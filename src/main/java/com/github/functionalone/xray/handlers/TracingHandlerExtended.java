@@ -32,8 +32,8 @@ public class TracingHandlerExtended extends TracingHandler {
       return null;
     }
     try {
-      URL res = new URL(s);
-      logger.info("Whitelist url set to: " + s);
+      URL res = TracingHandler.class.getResource(s);
+      logger.debug("Whitelist url set to: " + res);
       return res;
     } catch (Exception e) {
       logger.error("Failed setting whitelist url with value: [" + s + "].", e);
@@ -43,9 +43,9 @@ public class TracingHandlerExtended extends TracingHandler {
   
   /**
    * Will try to resolve in this order: 
-   * - system property: aws-xray-whitelist.url
+   * - system property: alt.aws.xray.whitelist.url
    * - environment property: AWS_XRAY_WHITELIST_URL
-   * - default: resource:/com/github/functionalone/xray/handlers/ExtendedOperationParameterWhitelist.json
+   * - default: resource: /com/github/functionalone/xray/handlers/ExtendedOperationParameterWhitelist.json
    * @return the found url or null if there is a problem
    */
   private static URL getConfiguredWhitelistUrl() {    
@@ -57,13 +57,7 @@ public class TracingHandlerExtended extends TracingHandler {
     if(null != res) {
       return res;
     }
-    //use default
-    try {
-      return TracingHandler.class.getResource(DEFAULT_WHITELIST_RESOURCE_URL);      
-    } catch (Exception e) {
-      logger.error("Failed getting url resource of default whitelist url: " + DEFAULT_WHITELIST_RESOURCE_URL, e);
-    }
-    return null;
+    return newUrlWithLog(DEFAULT_WHITELIST_RESOURCE_URL);    
   }
   
   private static final URL OPERATION_PARAMETER_WHITELIST = getConfiguredWhitelistUrl();

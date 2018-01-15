@@ -15,4 +15,4 @@ include 'api'
 include 'services:webservice'
 */
 
-rootProject.name = 'aws-xray-whitelist-java'
+rootProject.name = 'aws-xray-parameter-whitelist-java'
