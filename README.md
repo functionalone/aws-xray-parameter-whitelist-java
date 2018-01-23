@@ -46,5 +46,22 @@ Target jar will be created at: `build/lib`. Jar will be named: `aws-xray-paramet
 
 It is possible to configure a custom parameter whitelist file instead of the default one provided with the package. This can be done either via a the environment variable: `AWS_XRAY_WHITELIST_URL` or the System property: `alt.aws.xray.whitelist.url`. The System property takes precedence over the environment variable. Value should be set to a resource path as specified by [Class.getResource()](https://docs.oracle.com/javase/8/docs/api/java/lang/Class.html#getResource-java.lang.String-). For example: `/com/myconpany/mypackage/MyParameterWhitelist.json`.
 
-**Note**: If setting the System property programmatically, you need to set this before using the AWS SDK. The configuration is evaluated once upon first usage of the AWS SDK.  
+**Note**: If setting the System property programmatically, you need to set this before using the AWS SDK. The configuration is evaluated once, upon first usage of the AWS SDK.  
 
+# Generating Your Own Parameter Whitelist
+
+Source code includes a utility class which can be used to generate parameter whitelists for additional services. The class is under the test source tree and requires compiling the project from source to run. Class name: `com.github.functionalone.xray.handlers.GenerateParameterWhitelist`. The class uses parameters which are passed via java system properties. The following properties are used:
+
+```
+gen.file: [output file name, default to whitelist.json]
+gen.class: <class to generate whitelist for, example: com.amazonaws.services.s3.AmazonS3Client'>
+gen.service: <service name, example: 'Amazon S3'>
+gen.params: <parameter names comma separated, example: BucketName,Key,VersionId,Prefix>
+gen.verbose: [true|false, default:false, will print more info on stdout regarding what is being done]
+```
+
+There is a gradle task: `generateWhitelist` which can be used to run the class. For example the S3 parameter whitelist was generated using the following command line:
+
+```
+./gradlew -Dgen.class=com.amazonaws.services.s3.AmazonS3Client -Dgen.service="Amazon S3" -Dgen.params=BucketName,Key,VersionId,Prefix,SourceBucketName,SourceKey,DestinationBucketName,DestinationKey generateWhitelist
+```
